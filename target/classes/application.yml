@@ -1,0 +1,93 @@
+# Server Configuration
+server:
+  port: 8080  # Default port for the API
+  servlet:
+    context-path: /api  # Optional: Base path for all endpoints (e.g., /api/auth/login)
+
+# Database Configuration (MySQL)
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taskdb}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
+    username: ${DB_USERNAME:taskdb}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:  # Connection pool settings for better performance
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 'validate' for production with Flyway; use 'update' for development only
+    show-sql: true  # Log SQL statements (set to false in production)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect  # For MySQL 8+
+        format_sql: true  # Pretty-print SQL in logs
+        use_sql_comments: true  # Add comments to SQL logs
+        jdbc:
+          lob:
+            non_contextual_creation: true  # For handling large objects like descriptions
+    open-in-view: false  # Disable OSIV to avoid lazy loading issues in controllers
+
+  # Flyway Database Migration Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration  # Path to migration scripts (e.g., V1__Initial_schema.sql)
+    baseline-on-migrate: true  # Automatically baseline if no history table exists
+    clean-disabled: true  # Prevent accidental data wipe
+    validate-on-migrate: true  # Validate migrations on startup
+    out-of-order: false  # Enforce migration order
+
+  # Validation Configuration (for @Valid in controllers)
+  validation:
+    message-codes-resolver: org.springframework.validation.beanvalidation.LocaleContextMessageCodesResolver
+
+# JWT Configuration (Custom properties for JwtUtil)
+jwt:
+  secret: ${JWT_SECRET:-n "mysecret"}  # Use a strong, random secret (e.g., generate with openssl rand -base64 32)
+  expiration: 3600000  # Token expiration in milliseconds (1 hour = 3600000; adjust as needed, e.g., 86400000 for 24 hours)
+
+# Logging Configuration (Development-friendly)
+logging:
+  level:
+    root: INFO
+    com.example.taskmanagerapi: DEBUG  # Debug logs for your package
+    org.springframework.security: DEBUG  # For security-related logs
+    org.hibernate.SQL: DEBUG  # SQL queries
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Parameter binding (be careful in prod)
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"  # Simple console pattern
+  file:
+    name: logs/taskmanager-api.log  # Optional: Log to file
+    max-size: 10MB
+    max-history: 7  # Keep 7 days of logs
+
+# Management Endpoints (Optional: For health checks and metrics)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics  # Expose these endpoints at /actuator/*
+  endpoint:
+    health:
+      show-details: always  # Show detailed health info
+
+# CORS Configuration (If your API is consumed by a frontend like React/Angular)
+# Note: This is under spring.mvc for CORS; add if needed
+  mvc:
+    cors:
+      allowed-origins: "*"  # Allow all origins (restrict in prod, e.g., "http://localhost:3000")
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+
+# SpringDoc for API Documentation (Swagger/OpenAPI)
+springdoc:
+  api-docs:
+    path: /api-docs  # Swagger/OpenAPI docs at /api-docs
+  swagger-ui:
+    path: /swagger-ui.html  # Swagger UI at /swagger-ui.html

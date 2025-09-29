@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+# The following is your application configuration, which should be moved to a separate file (e.g., application.yml) and not included in the workflow YAML.
+# spring:
+#   profiles:
+#     active: dev
+#   datasource:
+#     url: jdbc:mysql://${DB_HOST:localhost}:3306/taskdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+#     username: ${DB_USERNAME:root}
+#     password: ${DB_PASSWORD:@Welcome@128}
+#     driver-class-name: com.mysql.cj.jdbc.Driver
+#   jpa:
+#     hibernate:
+#       ddl-auto: validate
+#     show-sql: true  # Disable in prod
+#     properties:
+#       hibernate:
+#         dialect: org.hibernate.dialect.MySQLDialect
+#   flyway:
+#     baseline-on-migrate: true
+#     locations: classpath:db/migration
+#     enabled: true
+#
+# jwt:
+#   secret: ${JWT_SECRET:mySecretKeyForDevOnlyChangeInProd}
+#   expiration: 86400000  # 24 hours
+#
+# logging:
+#   level:
+#     com.example.taskmanagerapi: INFO
+#     org.springframework.security: DEBUG
+#   pattern:
+#     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#
+# server:
+#   port: 8080
+#   error:
+#     include-message: always  # Disable in prod for security
+#
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         include: health,info,metrics
+#   endpoint:
+#     health:
+#       show-details: always  # Dev only
